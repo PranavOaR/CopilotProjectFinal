@@ -25,14 +25,15 @@ struct Transaction {
 };
 
 // Function prototypes
-void main_menu();
-void new_account();
-void display_all_accounts();
-void display_account();
-void transaction();
-int found_account(int acc_no);
-float give_balance(int acc_no);
-void add_to_file(struct Transaction trans);
+void main_menu(); // pranav
+void add_to_file(struct Transaction trans); // pranav
+void new_account(); // shashank
+void display_all_accounts(); // shashank
+void display_account(); // vince
+void transaction(); // vince
+int found_account(int acc_no); // pradumna
+float give_balance(int acc_no);// pradumna
+
 
 int main() {
     printf("\n*** BANK RECONCILIATION SYSTEM - MVP ***\n");
@@ -108,7 +109,7 @@ void new_account() {
         acc.name[strlen(acc.name)-1] = '\0'; // remove newline
         
         if(strlen(acc.name) == 0) {
-            printf("Name cannot be blank! Please try again.\n");
+            printf("Name cannot be left empty. Please try again.\n");
         }
     } while(strlen(acc.name) == 0);
     
@@ -316,7 +317,7 @@ void transaction() {
     remove("INITIAL.dat");
     rename("temp.dat", "INITIAL.dat");
     
-    // Add transaction to BANKING.dat
+    
     add_to_file(trans);
     
     printf("\nTransaction completed successfully!\n");
