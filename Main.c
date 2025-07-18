@@ -31,6 +31,7 @@ void new_account(); // shashank
 void display_all_accounts(); // shashank
 void display_account(); // vince
 void transaction(); // vince
+void modify_account(); // modify existing account
 int found_account(int acc_no); // pradumna
 float give_balance(int acc_no);// pradumna
 
@@ -52,6 +53,7 @@ void main_menu() {
         printf("2. Display All Accounts\n");
         printf("3. Display Individual Account\n");
         printf("4. Make Transaction\n");
+        printf("5. Modify Account\n");
         printf("0. Exit\n");
         printf("\nEnter your choice: ");
         
@@ -69,6 +71,9 @@ void main_menu() {
                 break;
             case 4:
                 transaction();
+                break;
+            case 5:
+                modify_account();
                 break;
             case 0:
                 printf("\nThank you for using Bank Reconciliation System!\n");
@@ -377,6 +382,78 @@ void add_to_file(struct Transaction trans) {
     
     fwrite(&trans, sizeof(struct Transaction), 1, fp);
     fclose(fp);
+}
+
+void modify_account() {
+    int acct_no;
+    FILE *fp;
+    struct Account acc;
+    long position;
+    char new_name[100];
+    char new_address[200];
+    
+    printf("\n=== MODIFY ACCOUNT ===\n");
+    printf("Enter account number: ");
+    scanf("%d", &acct_no);
+    
+    // Check if account exists
+    if(!found_account(acct_no)) {
+        printf("Account not found!\n");
+        return;
+    }
+    
+    // Open file for reading and writing
+    fp = fopen("INITIAL.dat", "r+b");
+    if(fp == NULL) {
+        printf("Error: Cannot open file!\n");
+        return;
+    }
+    
+    // Search for the account and get its position
+    while(fread(&acc, sizeof(struct Account), 1, fp)) {
+        if(acc.acct_no == acct_no) {
+            // Display current account details
+            printf("\nCurrent Account Details:\n");
+            printf("Account Number: %d\n", acc.acct_no);
+            printf("Name: %s\n", acc.name);
+            printf("Address: %s\n", acc.address);
+            printf("Balance: Rs.%.2f\n", acc.balance);
+            
+            // Get new name
+            printf("\nEnter new name: ");
+            getchar(); // consume newline
+            fgets(new_name, sizeof(new_name), stdin);
+            new_name[strlen(new_name)-1] = '\0'; // remove newline
+            
+            // Get new address
+            printf("Enter new address: ");
+            fgets(new_address, sizeof(new_address), stdin);
+            new_address[strlen(new_address)-1] = '\0'; // remove newline
+            
+            // Update the account structure
+            strcpy(acc.name, new_name);
+            strcpy(acc.address, new_address);
+            
+            // Move file pointer back to the beginning of this record
+            fseek(fp, -(long)sizeof(struct Account), SEEK_CUR);
+            
+            // Write the updated record at the same position
+            fwrite(&acc, sizeof(struct Account), 1, fp);
+            
+            printf("\nAccount modified successfully!\n");
+            printf("Updated Details:\n");
+            printf("Account Number: %d\n", acc.acct_no);
+            printf("Name: %s\n", acc.name);
+            printf("Address: %s\n", acc.address);
+            printf("Balance: Rs.%.2f\n", acc.balance);
+            
+            fclose(fp);
+            return;
+        }
+    }
+    
+    fclose(fp);
+    printf("Error: Account not found during modification!\n");
 }
 
 /*
