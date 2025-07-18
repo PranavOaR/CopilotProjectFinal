@@ -32,6 +32,7 @@ void display_all_accounts(); // shashank
 void display_account(); // vince
 void transaction(); // vince
 void modify_account(); // modify existing account
+void delete_account(); // delete existing account
 int found_account(int acc_no); // pradumna
 float give_balance(int acc_no);// pradumna
 
@@ -54,6 +55,7 @@ void main_menu() {
         printf("3. Display Individual Account\n");
         printf("4. Make Transaction\n");
         printf("5. Modify Account\n");
+        printf("6. Delete Account\n");
         printf("0. Exit\n");
         printf("\nEnter your choice: ");
         
@@ -74,6 +76,9 @@ void main_menu() {
                 break;
             case 5:
                 modify_account();
+                break;
+            case 6:
+                delete_account();
                 break;
             case 0:
                 printf("\nThank you for using Bank Reconciliation System!\n");
@@ -454,6 +459,91 @@ void modify_account() {
     
     fclose(fp);
     printf("Error: Account not found during modification!\n");
+}
+
+void delete_account() {
+    int acct_no;
+    FILE *fp, *temp_fp;
+    struct Account acc;
+    int found = 0;
+    char confirm;
+    
+    printf("\n=== DELETE ACCOUNT ===\n");
+    printf("Enter account number to delete: ");
+    scanf("%d", &acct_no);
+    
+    // Check if account exists
+    if(!found_account(acct_no)) {
+        printf("Account not found!\n");
+        return;
+    }
+    
+    // Display account details before deletion
+    fp = fopen("INITIAL.dat", "rb");
+    if(fp == NULL) {
+        printf("Error: Cannot open file!\n");
+        return;
+    }
+    
+    printf("\nAccount to be deleted:\n");
+    while(fread(&acc, sizeof(struct Account), 1, fp)) {
+        if(acc.acct_no == acct_no) {
+            printf("Account Number: %d\n", acc.acct_no);
+            printf("Name: %s\n", acc.name);
+            printf("Address: %s\n", acc.address);
+            printf("Balance: Rs.%.2f\n", acc.balance);
+            found = 1;
+            break;
+        }
+    }
+    fclose(fp);
+    
+    if(!found) {
+        printf("Error: Account not found!\n");
+        return;
+    }
+    
+    // Confirm deletion
+    printf("\nAre you sure you want to delete this account? (y/n): ");
+    scanf(" %c", &confirm);
+    
+    if(confirm != 'y' && confirm != 'Y') {
+        printf("Account deletion cancelled.\n");
+        return;
+    }
+    
+    // Copy all records except the one to be deleted
+    fp = fopen("INITIAL.dat", "rb");
+    temp_fp = fopen("temp.dat", "wb");
+    
+    if(fp == NULL || temp_fp == NULL) {
+        printf("Error: Cannot open files for deletion!\n");
+        return;
+    }
+    
+    found = 0;
+    while(fread(&acc, sizeof(struct Account), 1, fp)) {
+        if(acc.acct_no != acct_no) {
+            // Copy all accounts except the one to be deleted
+            fwrite(&acc, sizeof(struct Account), 1, temp_fp);
+        } else {
+            found = 1; // Mark that we found and skipped the account
+        }
+    }
+    
+    fclose(fp);
+    fclose(temp_fp);
+    
+    if(found) {
+        // Replace original file with temporary file
+        remove("INITIAL.dat");
+        rename("temp.dat", "INITIAL.dat");
+        printf("\nAccount deleted successfully!\n");
+    } else {
+        // Remove temporary file if account was not found
+        remove("temp.dat");
+        printf("Error: Account not found during deletion!\n");
+    }
 }
 
 /*
